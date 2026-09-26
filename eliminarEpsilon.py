@@ -25,7 +25,7 @@ def encontrar_anulables(producciones):
 
 
 def eliminar_epsilon(inicio, producciones):
-    """Devuelve gramática equivalente y detalle de las 2^m combinaciones."""
+    """Devuelve gramática sin ε y detalle de las 2^m combinaciones."""
     anulables, pasos = encontrar_anulables(producciones)
     resultado = {variable: [] for variable in producciones}
     combinaciones = []
@@ -39,14 +39,11 @@ def eliminar_epsilon(inicio, producciones):
             for decisiones in product((False, True), repeat=len(posiciones)):
                 omitidas = {posicion for posicion, omitir in zip(posiciones, decisiones) if omitir}
                 generado = "".join(simbolo for i, simbolo in enumerate(cuerpo) if i not in omitidas)
-                # Solo el símbolo inicial conserva ε cuando pertenece al lenguaje.
                 if generado and generado not in resultado[variable]:
                     resultado[variable].append(generado)
                 casos.append((tuple(i + 1 for i in sorted(omitidas)), generado or EPSILON))
             combinaciones.append((variable, cuerpo, casos))
 
-    if inicio in anulables:
-        resultado[inicio].append(EPSILON)
     return resultado, anulables, pasos, combinaciones
 
 
@@ -68,11 +65,9 @@ def mostrar_pasos(inicio, producciones):
             posiciones = ", ".join(map(str, omitidas)) if omitidas else "Ninguna"
             nota = ""
             if generado == EPSILON:
-                nota = "Se conserva" if variable == inicio and inicio in anulables else "Se descarta"
+                nota = "Se descarta"
             print(f"      {posiciones:<20}| {generado:<20}| {nota}")
 
-    if inicio in anulables:
-        print(f"\n   Se conserva {inicio} → ε porque la gramática original genera ε.")
     print("\n3. Gramática resultante:")
     for variable, alternativas in resultado.items():
         print(f"   {variable} → {' | '.join(alternativas) if alternativas else '∅'}")
